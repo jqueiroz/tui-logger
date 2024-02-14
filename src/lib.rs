@@ -349,6 +349,8 @@ struct TuiLogger {
 }
 impl TuiLogger {
     pub fn move_events(&self) {
+        return;
+        // [here]
         // If there are no new events, then just return
         if self.hot_log.lock().events.total_elements() == 0 {
             return;
@@ -452,6 +454,7 @@ pub fn tracing_subscriber_layer() -> TuiTracingSubscriberLayer {
 /// Set the depth of the hot buffer in order to avoid message loss.
 /// This is effective only after a call to move_events()
 pub fn set_hot_buffer_depth(depth: usize) {
+    panic!();
     TUI_LOGGER.inner.lock().hot_depth = depth;
 }
 
@@ -463,6 +466,7 @@ pub fn move_events() {
 
 /// Define filename for logging.
 pub fn set_log_file(fname: &str) -> io::Result<()> {
+    panic!();
     OpenOptions::new()
         .create(true)
         .append(true)
@@ -487,7 +491,10 @@ pub fn set_level_for_target(target: &str, levelfilter: LevelFilter) {
 }
 
 impl TuiLogger {
+    // [here+]
     fn raw_log(&self, record: &Record) {
+        // [here+++] --> this alone is causing the latency spikes
+        //return;
         let log_entry = ExtLogRecord {
             timestamp: chrono::Local::now(),
             level: record.level(),
@@ -496,12 +503,14 @@ impl TuiLogger {
             line: record.line().unwrap_or(0),
             msg: format!("{}", record.args()),
         };
+        //return;
         self.hot_log.lock().events.push(log_entry);
     }
 }
 
 impl Log for TuiLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
+        return true;
         let h = fxhash::hash64(metadata.target());
         let hs = self.hot_select.lock();
         if let Some(&levelfilter) = hs.hashtable.get(&h) {
@@ -512,6 +521,7 @@ impl Log for TuiLogger {
     }
 
     fn log(&self, record: &Record) {
+        // [here]
         if self.enabled(record.metadata()) {
             self.raw_log(record)
         }
@@ -672,6 +682,7 @@ pub struct TuiLoggerTargetWidget<'b> {
 }
 impl<'b> Default for TuiLoggerTargetWidget<'b> {
     fn default() -> TuiLoggerTargetWidget<'b> {
+        // [move triggered here]
         TUI_LOGGER.move_events();
         TuiLoggerTargetWidget {
             block: None,
@@ -903,6 +914,7 @@ pub struct TuiLoggerWidget<'b> {
 }
 impl<'b> Default for TuiLoggerWidget<'b> {
     fn default() -> TuiLoggerWidget<'b> {
+        // [move triggered here]
         TUI_LOGGER.move_events();
         TuiLoggerWidget {
             block: None,
@@ -1122,6 +1134,8 @@ impl<'b> TuiLoggerWidget<'b> {
 }
 impl<'b> Widget for TuiLoggerWidget<'b> {
     fn render(mut self, area: Rect, buf: &mut Buffer) {
+        // [here]
+        return;
         buf.set_style(area, self.style);
         let list_area = match self.block.take() {
             Some(b) => {
@@ -1260,6 +1274,7 @@ pub struct TuiLoggerSmartWidget<'a> {
 }
 impl<'a> Default for TuiLoggerSmartWidget<'a> {
     fn default() -> Self {
+        // [move triggered here]
         TUI_LOGGER.move_events();
         TuiLoggerSmartWidget {
             title_log: Line::from("Tui Log"),
