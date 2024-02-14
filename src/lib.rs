@@ -1175,7 +1175,7 @@ impl<'b> Widget for TuiLoggerWidget<'b> {
                 }
                 let (mut output, col_style) = self.format_event(evt);
                 let mut sublines: Vec<&str> = evt.msg.lines().rev().collect();
-                output.push_str(sublines.pop().unwrap());
+                //output.push_str(sublines.pop().unwrap()); // leads to panic, with other code commented out
                 for subline in sublines {
                     lines.push((col_style, indent, subline.to_string()));
                 }

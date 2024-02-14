@@ -19,26 +19,31 @@ impl fmt::Display for ToStringVisitor<'_> {
 
 impl<'a> tracing::field::Visit for ToStringVisitor<'a> {
     fn record_f64(&mut self, field: &tracing::field::Field, value: f64) {
+        //return;
         self.0
             .insert(field.name(), format_args!("{}", value).to_string());
     }
 
     fn record_i64(&mut self, field: &tracing::field::Field, value: i64) {
+        //return;
         self.0
             .insert(field.name(), format_args!("{}", value).to_string());
     }
 
     fn record_u64(&mut self, field: &tracing::field::Field, value: u64) {
+        //return;
         self.0
             .insert(field.name(), format_args!("{}", value).to_string());
     }
 
     fn record_bool(&mut self, field: &tracing::field::Field, value: bool) {
+        //return;
         self.0
             .insert(field.name(), format_args!("{}", value).to_string());
     }
 
     fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
+        return;
         self.0
             .insert(field.name(), format_args!("{}", value).to_string());
     }
@@ -48,11 +53,13 @@ impl<'a> tracing::field::Visit for ToStringVisitor<'a> {
         field: &tracing::field::Field,
         value: &(dyn std::error::Error + 'static),
     ) {
+        return;
         self.0
             .insert(field.name(), format_args!("{}", value).to_string());
     }
 
     fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
+        return;
         self.0
             .insert(field.name(), format_args!("{:?}", value).to_string());
     }
@@ -82,8 +89,10 @@ where
         event: &tracing::Event<'_>,
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
+        // Reference implementation: https://github.com/tokio-rs/tracing/blob/baeba47cdaac9ed32d5ef3f6f1d7b0cc71ffdbdf/tracing-subscriber/src/fmt/fmt_subscriber.rs#L945
         let mut visitor = ToStringVisitor::default();
         event.record(&mut visitor);
+        //return;
 
         let level = match *event.metadata().level() {
             tracing::Level::ERROR => log::Level::Error,
