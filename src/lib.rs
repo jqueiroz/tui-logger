@@ -478,12 +478,14 @@ pub fn set_log_file(fname: &str) -> io::Result<()> {
 
 /// Set default levelfilter for unknown targets of the logger
 pub fn set_default_level(levelfilter: LevelFilter) {
+    return;
     TUI_LOGGER.hot_select.lock().default = levelfilter;
     TUI_LOGGER.inner.lock().default = levelfilter;
 }
 
 /// Set levelfilter for a specific target in the logger
 pub fn set_level_for_target(target: &str, levelfilter: LevelFilter) {
+    return;
     let h = fxhash::hash64(&target);
     TUI_LOGGER.inner.lock().targets.set(target, levelfilter);
     let mut hs = TUI_LOGGER.hot_select.lock();
@@ -494,7 +496,7 @@ impl TuiLogger {
     // [here+]
     fn raw_log(&self, record: &Record) {
         // [here+++] --> this alone is causing the latency spikes
-        //return;
+        return;
         let log_entry = ExtLogRecord {
             timestamp: chrono::Local::now(),
             level: record.level(),
@@ -503,7 +505,7 @@ impl TuiLogger {
             line: record.line().unwrap_or(0),
             msg: format!("{}", record.args()),
         };
-        //return;
+        return;
         self.hot_log.lock().events.push(log_entry);
     }
 }
@@ -521,6 +523,8 @@ impl Log for TuiLogger {
     }
 
     fn log(&self, record: &Record) {
+        // hmm mesmo comentando tudo, ta dando pico de latencia...
+        return;
         // [here]
         if self.enabled(record.metadata()) {
             self.raw_log(record)
@@ -655,14 +659,17 @@ impl TuiWidgetState {
         }
     }
     pub fn set_default_display_level(self, levelfilter: LevelFilter) -> TuiWidgetState {
+        return self;
         self.inner.lock().config.default_display_level = Some(levelfilter);
         self
     }
     pub fn set_level_for_target(self, target: &str, levelfilter: LevelFilter) -> TuiWidgetState {
+        return self;
         self.inner.lock().config.set(target, levelfilter);
         self
     }
     pub fn transition(&mut self, event: TuiWidgetEvent) {
+        return;
         self.inner.lock().transition(event);
     }
 }
@@ -762,6 +769,7 @@ impl<'b> TuiLoggerTargetWidget<'b> {
 }
 impl<'b> Widget for TuiLoggerTargetWidget<'b> {
     fn render(mut self, area: Rect, buf: &mut Buffer) {
+        return;
         buf.set_style(area, self.style);
         let list_area = match self.block.take() {
             Some(b) => {
@@ -1420,6 +1428,7 @@ impl<'a> TuiLoggerSmartWidget<'a> {
 impl<'a> Widget for TuiLoggerSmartWidget<'a> {
     /// Nothing to draw for combo widget
     fn render(self, area: Rect, buf: &mut Buffer) {
+        return;
         let entries_s = {
             let mut tui_lock = TUI_LOGGER.inner.lock();
             let first_timestamp = tui_lock

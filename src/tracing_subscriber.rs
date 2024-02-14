@@ -82,8 +82,14 @@ where
         event: &tracing::Event<'_>,
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
+        // colocando um return aqui, resolve o problema da latencia
+        //return;
+        //TODO: simply send stuff to another thread here (channel), let the other thread handle it
+        //(incl. event.record)
+
         let mut visitor = ToStringVisitor::default();
         event.record(&mut visitor);
+        return;
 
         let level = match *event.metadata().level() {
             tracing::Level::ERROR => log::Level::Error,
@@ -93,6 +99,7 @@ where
             tracing::Level::TRACE => log::Level::Trace,
         };
 
+        return;
         TUI_LOGGER.log(
             &Record::builder()
                 .args(format_args!("{}", visitor))
