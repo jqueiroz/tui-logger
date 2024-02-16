@@ -12,7 +12,7 @@ struct ToStringVisitor<'a>(Vec<(&'a str, String)>);
 
 impl fmt::Display for ToStringVisitor<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        return fmt::Result::Ok(());
+        //return fmt::Result::Ok(());
         let mut x = self.0.clone();
         /*
         x.sort_unstable();
@@ -69,7 +69,10 @@ impl<'a> tracing::field::Visit for ToStringVisitor<'a> {
     }
 
     fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
-        return;
+        //assert_eq!(field.name(), "message");
+        //self.0.push((field.name(), "fake msg".to_string()));
+        //println!("{} = {}", field.name(), format_args!("{:?}", value).to_string());
+        //return;
         self.0
             .push((field.name(), format_args!("{:?}", value).to_string()));
     }
