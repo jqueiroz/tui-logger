@@ -6,41 +6,36 @@ use std::collections::HashMap;
 use std::fmt;
 use tracing_subscriber::Layer;
 
-#[derive(Default)]
-struct ToStringVisitor<'a>(HashMap<&'a str, String>);
+struct LogFormatter<'a>(&'a tracing::Event<'a>);
+struct ToStringVisitor<'a, 'b>(&'b mut fmt::Formatter<'a>);
 
-impl fmt::Display for ToStringVisitor<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0
-            .iter()
-            .try_for_each(|(k, v)| -> fmt::Result { write!(f, " {}: {}", k, v) })
+impl fmt::Display for LogFormatter<'_> {
+    fn fmt<'a, 'b>(&self, f: &'b mut fmt::Formatter<'a>) -> fmt::Result {
+        let mut visitor = ToStringVisitor::<'a, 'b>(f);
+        self.0.record(&mut visitor);
+        fmt::Result::Ok(())
     }
 }
 
-impl<'a> tracing::field::Visit for ToStringVisitor<'a> {
+impl<'a, 'b> tracing::field::Visit for ToStringVisitor<'a, 'b> {
     fn record_f64(&mut self, field: &tracing::field::Field, value: f64) {
-        self.0
-            .insert(field.name(), format_args!("{}", value).to_string());
+        write!(self.0, " {}: {}", field.name(), value);
     }
 
     fn record_i64(&mut self, field: &tracing::field::Field, value: i64) {
-        self.0
-            .insert(field.name(), format_args!("{}", value).to_string());
+        write!(self.0, " {}: {}", field.name(), value);
     }
 
     fn record_u64(&mut self, field: &tracing::field::Field, value: u64) {
-        self.0
-            .insert(field.name(), format_args!("{}", value).to_string());
+        write!(self.0, " {}: {}", field.name(), value);
     }
 
     fn record_bool(&mut self, field: &tracing::field::Field, value: bool) {
-        self.0
-            .insert(field.name(), format_args!("{}", value).to_string());
+        write!(self.0, " {}: {}", field.name(), value);
     }
 
     fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
-        self.0
-            .insert(field.name(), format_args!("{}", value).to_string());
+        write!(self.0, " {}: {}", field.name(), value);
     }
 
     fn record_error(
@@ -48,13 +43,11 @@ impl<'a> tracing::field::Visit for ToStringVisitor<'a> {
         field: &tracing::field::Field,
         value: &(dyn std::error::Error + 'static),
     ) {
-        self.0
-            .insert(field.name(), format_args!("{}", value).to_string());
+        write!(self.0, " {}: {}", field.name(), value);
     }
 
     fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
-        self.0
-            .insert(field.name(), format_args!("{:?}", value).to_string());
+        write!(self.0, " {}: {:?}", field.name(), value);
     }
 }
 
@@ -82,8 +75,7 @@ where
         event: &tracing::Event<'_>,
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
-        let mut visitor = ToStringVisitor::default();
-        event.record(&mut visitor);
+        let formatter = LogFormatter(event);
 
         let level = match *event.metadata().level() {
             tracing::Level::ERROR => log::Level::Error,
@@ -95,7 +87,7 @@ where
 
         TUI_LOGGER.log(
             &Record::builder()
-                .args(format_args!("{}", visitor))
+                .args(format_args!("{}", formatter))
                 .level(level)
                 .target(event.metadata().target())
                 .file(event.metadata().file())
