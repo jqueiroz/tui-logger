@@ -91,10 +91,6 @@ where
         event: &tracing::Event<'_>,
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
-        let mut visitor = ToStringVisitor::default();
-        event.record(&mut visitor);
-        //return;
-
         let level = match *event.metadata().level() {
             tracing::Level::ERROR => log::Level::Error,
             tracing::Level::WARN => log::Level::Warn,
@@ -102,6 +98,14 @@ where
             tracing::Level::DEBUG => log::Level::Debug,
             tracing::Level::TRACE => log::Level::Trace,
         };
+
+        if level == log::Level::Trace || level == log::Level::Debug {
+            return;
+        }
+
+        let mut visitor = ToStringVisitor::default();
+        event.record(&mut visitor);
+        //return;
 
         TUI_LOGGER.log(
             &Record::builder()
