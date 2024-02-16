@@ -2,7 +2,7 @@
 
 use super::TUI_LOGGER;
 use log::{self, Log, Record};
-use std::collections::HashMap;
+use std::collections::{HashMap,HashSet};
 use std::fmt;
 use tracing_subscriber::Layer;
 
@@ -12,7 +12,15 @@ struct ToStringVisitor<'a>(Vec<(&'a str, String)>);
 
 impl fmt::Display for ToStringVisitor<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0
+        let mut x = self.0.clone();
+        /*
+        x.sort_unstable();
+        x.dedup();
+        */
+        let mut uniques = HashSet::new();
+        x.retain(|(k, _v)| uniques.insert(*k));
+
+        x
             .iter()
             .try_for_each(|(k, v)| -> fmt::Result { write!(f, " {}: {}", k, v) })
     }
