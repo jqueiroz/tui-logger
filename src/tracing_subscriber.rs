@@ -17,7 +17,7 @@ impl fmt::Display for ToStringVisitor<'_> {
         x.sort_unstable();
         x.dedup();
         */
-        let mut uniques = HashSet::new();
+        let mut uniques = HashSet::with_capacity(x.len());
         x.retain(|(k, _v)| uniques.insert(*k));
 
         x
